@@ -1,0 +1,6 @@
+test/
+*.pyc
+README.txt
+MANIFEST
+build/
+dist/
