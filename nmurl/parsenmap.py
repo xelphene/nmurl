@@ -156,6 +156,7 @@ class FileParser:
 			self.cur_port_state = None
 			self.cur_port_service = None
 				
+		if self.current_path_str() == 'nmaprun.host':
 			
 			# reset host things back to defaults
 			self.cur_host_state = None
