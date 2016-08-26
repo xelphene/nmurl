@@ -3,6 +3,7 @@ import optparse
 import sys
 
 import nmurl.parsedns
+import nmurl.parsenmap
 
 class NameFileError(Exception):
 	def __init__(self, nameFile, exc):
@@ -50,6 +51,7 @@ def parseArgs(argv=sys.argv):
 	
 def mainInner():
 	(nmapFiles, nameFiles) = parseArgs()
+	urlList = URLList()
 	
 	print 'nmapFiles:',repr(nmapFiles)
 	print 'nameFiles:',repr(nameFiles)
@@ -64,7 +66,48 @@ def mainInner():
 		else:
 			nmurl.parsedns.parseFile(f, rrsl)
 
+	for nmapFile in nmapFiles:
+		print '*',nmapFile
+		f = open(nmapFile)
+		p = nmurl.parsenmap.FileParser(
+			onPortOpen = urlList.portOpen,
+			onServiceProbed = urlList.serviceProbed
+		)
+		p.parse(f)
 
+def guessScheme(portNum):
+
+	# TODO
+	
+	if portNum in (443, 8443):
+		return 'https'
+	elif '443' in str(portNum):
+		return 'https'
+		
+
+class URLList:
+	def __init__(self):
+		pass
+	
+	def portOpen(self, parserInfo):
+		# TODO
+		pass
+		
+	def serviceProbed(self, parserInfo):
+		#print 'serviceProbed:',parserInfo
+		if parserInfo.get('name')=='http':
+			if parserInfo.get('tunnel')=='ssl':
+				if parserInfo['port']==443:
+					url = 'https://%s/' % parserInfo['address']
+				else:
+					url = 'https://%s:%s/' % (parserInfo['address'], parserInfo['port'])
+			else:
+				if parserInfo['port']==80:
+					url = 'http://%s/' % parserInfo['address']
+				else:
+					url = 'http://%s:%s/' % (parserInfo['address'], parserInfo['port'])
+			print 'URL',url
+				
 	
 def main():
 	try:

@@ -15,8 +15,11 @@ class ParseError(Exception):
 	
 
 class FileParser:
-	def __init__(self):
-		self.log = logging.getLogger('nmurl.parse')
+	def __init__(self, onPortOpen, onServiceProbed):
+		self.log = logging.getLogger('nmurl.parsenmap')
+		
+		self._onPortOpen = onPortOpen
+		self._onServiceProbed = onServiceProbed
 		
 		self._run_startts = None
 		self._path = []
@@ -115,9 +118,7 @@ class FileParser:
 			self.cur_host_extra_state = attrs['state']
 		
 		if self.current_path_str()=='nmaprun.host.ports.port.service':
-			if attrs.has_key('product') and attrs.has_key('version'):
-				#self.cur_port_service = ( attrs['product'], attrs['version'] )
-				self.cur_port_service = copy.copy(attrs)
+			self.cur_port_service = copy.copy(attrs)
 		
 		if self.current_path_str()=='nmaprun.host.ports.port.script':
 			self.cur_port_scripts.append({
@@ -135,21 +136,20 @@ class FileParser:
 		if self.current_path_str() == 'nmaprun.host.ports.port':
 			self.cur_host_specedports.add( (self.cur_port_proto, self.cur_port_num) )
 			if self.cur_port_state=='open':
-				if self.cur_port_state == 'open' and self.cur_port_num in (80,443):
+				if self.cur_port_state == 'open':
+					# we are at a closing </port> tag and its state was 'open'
+
 					d = {
+						'service': self.cur_port_service,
 						'address': self.cur_host_ipv4addr,
 						'proto': self.cur_port_proto,
-						'port': self.cur_port_num
+						'port': self.cur_port_num,
+						'path': self._file.name
 					}
-					print 'PORT:',d
 
-				if self.cur_port_service != None:
-					d = self.cur_port_service
-					d['path'] = self._file.name
-					d['address'] = self.cur_host_ipv4addr
-					d['proto'] = self.cur_port_proto
-					d['port'] = self.cur_port_num
-					print 'SERVICE:',d
+					print 'PORT:',d
+					self._onPortOpen(d)
+					
 					
 			self.cur_port_proto = None
 			self.cur_port_num = None
@@ -157,7 +157,7 @@ class FileParser:
 			self.cur_port_service = None
 				
 		if self.current_path_str() == 'nmaprun.host':
-			
+			# end of a host block
 			# reset host things back to defaults
 			self.cur_host_state = None
 			self.cur_host_ipv4addr = None
