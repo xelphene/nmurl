@@ -200,9 +200,5 @@ def parseFile(f, rrsl=None):
 			#print '<failed>',rpe
 			pass
 	
-	print rrsl.namesForAddress('209.57.32.138')
-	print rrsl.namesForAddress('127.0.0.1')
-	print rrsl.namesForAddress('10.2.2.2')
-	
 	return rrsl
 		

@@ -15,11 +15,8 @@ class ParseError(Exception):
 	
 
 class FileParser:
-	def __init__(self, onPortOpen, onServiceProbed):
+	def __init__(self):
 		self.log = logging.getLogger('nmurl.parsenmap')
-		
-		self._onPortOpen = onPortOpen
-		self._onServiceProbed = onServiceProbed
 		
 		self._run_startts = None
 		self._path = []
@@ -33,6 +30,43 @@ class FileParser:
 		self.cur_host_state = None # up or down
 		self._scanned_ports = {}
 		self._scan_types = {}
+
+		self._interestingPorts = set()
+		self._interestingServices = set()
+		self._interestingPortCallback = lambda p: None
+		self._interestingServiceCallback = lambda s: None
+
+	def addInterestingPort(self, port):
+
+		'''if 'port' is found open interestingPortCallback will be called
+		with info about it'''
+
+		if type(port) == int:
+			self._interestingPorts.add(port)
+		else:
+			raise TypeError('int required for port parameter')
+	
+	def addInterestingService(self, serviceName):
+		
+		'''if a port is found open and it's service name (as stated by nmap)
+		is serviceName, interestingServiceCallback will be called with info about it'''
+		
+		if type(serviceName) in (str, unicode):
+			self._interestingServices.add(serviceName)
+		else:
+			raise TypeError('str or unicode required for serviceName parameter')
+		
+	def setInterestingPortCallback(self, callbackFunc):
+		if callable(callbackFunc):
+			self._interestingPortCallback = callbackFunc
+		else:
+			raise TypeError('callable required for callbackFunc parameter')
+	
+	def setInterestingServiceCallback(self, callbackFunc):
+		if callable(callbackFunc):
+			self._interestingServiceCallback = callbackFunc
+		else:
+			raise TypeError('callable required for callbackFunc parameter')
 
 	def parse(self, f):
 		self._file = f
@@ -147,8 +181,11 @@ class FileParser:
 						'path': self._file.name
 					}
 
-					print 'PORT:',d
-					self._onPortOpen(d)
+					#print 'PORT:',d
+					if d['service'].get('name') in self._interestingServices:
+						self._interestingServiceCallback(d)
+					if d['port'] in self._interestingPorts:
+						self._interestingPortCallback(d)
 					
 					
 			self.cur_port_proto = None
