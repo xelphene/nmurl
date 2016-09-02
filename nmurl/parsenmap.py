@@ -181,9 +181,9 @@ class FileParser:
 						'path': self._file.name
 					}
 
-					#print 'PORT:',d
-					if d['service'].get('name') in self._interestingServices:
-						self._interestingServiceCallback(d)
+					if d.get('service'):
+						if d['service'].get('name') in self._interestingServices:
+							self._interestingServiceCallback(d)
 					if d['port'] in self._interestingPorts:
 						self._interestingPortCallback(d)
 					
