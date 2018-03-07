@@ -174,7 +174,10 @@ def mainInner():
 			parser.addInterestingPort(port)
 		parser.setInterestingPortCallback(nmapHandler)
 		parser.setInterestingServiceCallback(nmapHandler)
-		parser.parse(f)
+		try:
+			parser.parse(f)
+		except nmurl.parsenmap.ParseError, pe:
+			log.error('Error parsing %s: %s' % (nmapFile, pe))
 		log.debug('END %s' % nmapFile)
 
 	log.debug('end all parsing. writing results.')
