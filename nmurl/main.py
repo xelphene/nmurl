@@ -6,7 +6,7 @@ import logging
 import nmurl.parsedns
 import nmurl.parsenmap
 
-import iptree
+import ipcidrtree
 
 class NameFileError(Exception):
 	def __init__(self, nameFile, exc):
@@ -93,10 +93,10 @@ def initLogging(debug):
 def writeResults(urlsByAddrAndPort):
 	log = logging.getLogger('nmurl')
 	addrs = list(urlsByAddrAndPort.keys())
-	addrs = [iptree.Prefix(a) for a in addrs]
+	addrs = [ipcidrtree.Prefix(a) for a in addrs]
 	addrs.sort()
 	for addr in addrs:
-		addr_str = str(addr.address()) # normally an iptree.Prefix object
+		addr_str = str(addr.address()) # normally an ipcidrtree.Prefix object
 		log.debug('writing results for %s' % addr)
 		ports = list(urlsByAddrAndPort[addr_str].keys())
 		ports.sort()
