@@ -51,7 +51,7 @@ class FileParser:
 		'''if a port is found open and it's service name (as stated by nmap)
 		is serviceName, interestingServiceCallback will be called with info about it'''
 		
-		if type(serviceName) in (str, unicode):
+		if type(serviceName) in (str, str):
 			self._interestingServices.add(serviceName)
 		else:
 			raise TypeError('str or unicode required for serviceName parameter')
@@ -88,7 +88,7 @@ class FileParser:
 		while chunk:
 			try:
 				parser.Parse(chunk)
-			except xml.parsers.expat.ExpatError, e:
+			except xml.parsers.expat.ExpatError as e:
 				raise ParseError(
 					reason=str(e),
 					context=chunk,
@@ -102,7 +102,7 @@ class FileParser:
 		
 		try:
 			parser.Parse('',True) # tell the parser that was it
-		except xml.parsers.expat.ExpatError, e:
+		except xml.parsers.expat.ExpatError as e:
 			raise ParseError(
 				reason=str(e),
 				path=self._file.name)
@@ -117,7 +117,7 @@ class FileParser:
 				)
 	
 		# turn attrs into plain strings instead of unicode
-		attrs = dict( [(str(k), str(v)) for (k,v) in attrs.items()] )
+		attrs = dict( [(str(k), str(v)) for (k,v) in list(attrs.items())] )
 		self._path.append( {
 			'name': name,
 			'attrs': attrs } )

@@ -49,13 +49,13 @@ class RRSetList(object):
 		self._resolutionsCache = None
 
 	def __iter__(self):
-		for rrset in self.rrsets.values():
+		for rrset in list(self.rrsets.values()):
 			yield rrset
 	
 	def addRR(self, rr):
 		self._resolutionsCache = None
 		key = (rr.name,rr.rclass,rr.rtype)
-		if not self.rrsets.has_key(key):
+		if key not in self.rrsets:
 			self.rrsets[key] = RRSet(
 				name=rr.name, 
 				rtype=rr.rtype,
@@ -91,11 +91,11 @@ class RRSetList(object):
 		for rrset in self:
 			if rrset.rtype!='A':
 				continue
-			if not r['forward'].has_key(rrset.name):
+			if rrset.name not in r['forward']:
 				r['forward'][rrset.name] = set()
 			for address in rrset.data:
 				r['forward'][rrset.name].add(address)
-				if not r['reverse'].has_key(address):
+				if address not in r['reverse']:
 					r['reverse'][address] = set()
 				r['reverse'][address].add(rrset.name)
 
@@ -106,7 +106,7 @@ class RRSetList(object):
 				# datum is the CNAME TARGET
 				if datum.endswith('.'):
 					datum = datum[:-1]
-				if r['forward'].has_key(datum):
+				if datum in r['forward']:
 					addrs = r['forward'][datum]
 					r['forward'][rrset.name] = addrs
 					for addr in addrs:
@@ -122,18 +122,18 @@ class RRSetList(object):
 			return self._resolutionsCache
 		
 	def namesForAddress(self, addr):
-		if self.getResolutions()['reverse'].has_key(addr):
+		if addr in self.getResolutions()['reverse']:
 			return self.getResolutions()['reverse'][addr]
 		else:
 			return set([])
 		
 	def dump(self):
-		print '--- dns query'
+		print('--- dns query')
 		for rrset in self:
-			print rrset
+			print(rrset)
 			for rr in rrset:
-				print '   ',rr.simpleFormat()
-		print ' res:',self.getResolutions()
+				print('   ',rr.simpleFormat())
+		print(' res:',self.getResolutions())
 
 class RR(object):
 	def __init__(self, name=None, rclass=None, rtype=None, ttl=0, data=None):
@@ -196,7 +196,7 @@ def parseFile(f, rrsl=None):
 		try:
 			rr = RRParser.parseString(line)
 			rrsl.addRR(rr)			
-		except RRParseError, rpe:
+		except RRParseError as rpe:
 			#print '<failed>',rpe
 			pass
 	

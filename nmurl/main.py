@@ -92,13 +92,13 @@ def initLogging(debug):
 
 def writeResults(urlsByAddrAndPort):
 	log = logging.getLogger('nmurl')
-	addrs = urlsByAddrAndPort.keys()
+	addrs = list(urlsByAddrAndPort.keys())
 	addrs = [iptree.Prefix(a) for a in addrs]
 	addrs.sort()
 	for addr in addrs:
 		addr_str = str(addr.address()) # normally an iptree.Prefix object
 		log.debug('writing results for %s' % addr)
-		ports = urlsByAddrAndPort[addr_str].keys()
+		ports = list(urlsByAddrAndPort[addr_str].keys())
 		ports.sort()
 		for port in ports:
 			log.debug('  port %s' % port)
@@ -106,7 +106,7 @@ def writeResults(urlsByAddrAndPort):
 			urls = list(urls) # is a set	
 			urls.sort()
 			for url in urls:
-				print url
+				print(url)
 	
 def mainInner():
 	opts = parseArgs()
@@ -124,7 +124,7 @@ def mainInner():
 	for nameFile in opts.nameFiles:
 		try:
 			f = open(nameFile)
-		except Exception, e:
+		except Exception as e:
 			raise NameFileError(nameFile, e)
 		else:
 			nmurl.parsedns.parseFile(f, rrsl)
@@ -151,9 +151,9 @@ def mainInner():
 		else:
 			scheme = svc
 		
-		if not urlsByAddrAndPort.has_key(addr):
+		if addr not in urlsByAddrAndPort:
 			urlsByAddrAndPort[addr] = {}
-		if not urlsByAddrAndPort[addr].has_key(port):
+		if port not in urlsByAddrAndPort[addr]:
 			urlsByAddrAndPort[addr][port] = set()
 		
 		log.debug('URL: %s' % genurl(addr, port, scheme))
@@ -176,7 +176,7 @@ def mainInner():
 		parser.setInterestingServiceCallback(nmapHandler)
 		try:
 			parser.parse(f)
-		except nmurl.parsenmap.ParseError, pe:
+		except nmurl.parsenmap.ParseError as pe:
 			log.error('Error parsing %s: %s' % (nmapFile, pe))
 		log.debug('END %s' % nmapFile)
 
@@ -187,9 +187,9 @@ def mainInner():
 def main():
 	try:
 		mainInner()
-	except NameFileError, n:
-		print n
-	except NoNmapFilesError, n:
-		print n
+	except NameFileError as n:
+		print(n)
+	except NoNmapFilesError as n:
+		print(n)
 
 	
